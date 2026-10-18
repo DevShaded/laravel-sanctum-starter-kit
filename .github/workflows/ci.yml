@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: PHP checks and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    env:
+      APP_ENV: testing
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: testing
+      DB_USERNAME: sail
+      DB_PASSWORD: password
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: testing
+          POSTGRES_USER: sail
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sail -d testing"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, pdo_pgsql
+          coverage: none
+          tools: composer:2.10
+
+      - name: Locate Composer cache
+        id: composer-cache
+        run: echo "path=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.composer-cache.outputs.path }}
+          key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-php-8.5-composer-
+
+      - name: Prepare environment
+        run: cp .env.example .env
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Audit locked dependencies
+        run: composer audit --locked
+
+      - name: Generate application key
+        run: php artisan key:generate --no-interaction
+
+      - name: Check formatting, static analysis, refactors, and tests
+        run: composer check
+
+  fresh-clone:
+    name: Fresh clone setup
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Configure local environment
+        run: |
+          cp .env.example .env
+          printf '\nWWWUSER=%s\nWWWGROUP=%s\n' "$(id -u)" "$(id -g)" >> .env
+
+      - name: Bootstrap dependencies without host PHP or Composer
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -e COMPOSER_HOME=/tmp/composer \
+            -v "$PWD:/app" -w /app \
+            composer:2.10 install --ignore-platform-reqs --no-scripts --no-plugins --no-interaction --prefer-dist
+
+      - name: Start Sail and initialize application
+        run: |
+          vendor/bin/sail up -d --build --wait --wait-timeout 120
+          vendor/bin/sail composer setup
+          vendor/bin/sail composer check-platform-reqs
+
+      - name: Verify setup preserves the application key
+        run: |
+          before="$(sha256sum .env)"
+          vendor/bin/sail composer setup
+          test "$before" = "$(sha256sum .env)"
+
+      - name: Run quality checks and dependency audit in Sail
+        run: |
+          vendor/bin/sail composer check
+          vendor/bin/sail composer audit --locked
+          curl --fail --retry 10 --retry-connrefused --retry-delay 2 -H 'Accept: application/json' http://localhost:8081/up
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=100
+
+      - name: Remove smoke-test containers and volumes
+        if: always()
+        run: docker compose down --volumes
