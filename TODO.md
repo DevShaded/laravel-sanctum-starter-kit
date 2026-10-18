@@ -13,4 +13,4 @@ Skills are planned separately and are outside this checklist.
 - [x] Document deployment essentials: production environment configuration, application key management, migrations, queue workers, and scheduler operation.
 - [x] Decide on expired-token pruning and schedule `sanctum:prune-expired` when using expiring tokens.
 - [x] Initialize or connect the Git repository, verify that secrets and generated files are excluded, and confirm the intended template files are tracked. Initialized locally; environment files, dependencies, credentials, and generated caches are excluded.
-- [ ] Run GitHub Actions on the published repository, configure appropriate required checks, and enable the GitHub template repository setting when ready.
+- [x] Run GitHub Actions on the published repository, configure appropriate required checks, and enable the GitHub template repository setting when ready.

@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel-sanctum/starter-kit",
+    "name": "devshaded/laravel-sanctum-starter-kit",
     "type": "project",
     "description": "An API-only Laravel starter kit with Sanctum bearer tokens and Docker development.",
     "keywords": [

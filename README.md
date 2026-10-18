@@ -6,6 +6,21 @@ A Laravel 13 API using Sanctum bearer tokens, PHP 8.5, and Laravel Sail. The app
 
 Use GitHub's **Use this template** button to create your own repository, then clone it and enter its directory. Requirements: Git, Docker Engine or Docker Desktop with Docker Compose v2, and a POSIX shell (Linux, macOS, or Windows through WSL2). Host PHP, Composer, and Node are not required.
 
+### Create with Composer
+
+If you already have Composer 2.10+ and PHP 8.5, you can create an application directly from this private GitHub repository. Your GitHub account needs repository access, and Composer needs [GitHub authentication](https://getcomposer.org/doc/articles/authentication-for-private-packages.md#github-oauth). Configure credentials outside the project; do not put tokens in the command or commit them.
+
+```bash
+composer create-project devshaded/laravel-sanctum-starter-kit example-app dev-main \
+  --prefer-dist --no-install --no-scripts \
+  --repository='{"type":"vcs","url":"https://github.com/DevShaded/laravel-sanctum-starter-kit"}'
+cd example-app
+```
+
+Continue with **Fresh-clone setup** below. `--no-install --no-scripts` defers dependency installation and application initialization until Docker is configured. `dev-main` selects the current starter kit branch; tagged releases can be selected once available.
+
+The short command `composer create-project devshaded/laravel-sanctum-starter-kit --prefer-dist example-app` requires the package to be published to Packagist or available through a configured private Composer registry. This repository is currently private and is not registered on Packagist, so the explicit `--repository` option is required. Composer package names are lowercase.
+
 ### Fresh-clone setup
 
 Create the local environment and record your local user/group IDs:
