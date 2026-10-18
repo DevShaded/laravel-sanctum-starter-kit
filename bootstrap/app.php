@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         //
+        $middleware->statefulApi();
         $middleware->redirectGuestsTo(fn (Request $request): ?string => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

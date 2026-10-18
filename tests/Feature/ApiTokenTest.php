@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 final class ApiTokenTest extends TestCase
@@ -91,13 +92,29 @@ final class ApiTokenTest extends TestCase
         $response->assertUnauthorized();
     }
 
-    public function test_returns_401_for_a_browser_session_without_a_bearer_token(): void
+    public function test_authenticates_a_browser_session_without_a_bearer_token(): void
     {
         $user = User::factory()->create();
-        $this->actingAs($user, 'web');
+        $guard = auth()->guard('web');
+        $this->withSession([$guard->getName() => $user->id]);
 
-        $response = $this->getJson('/api/user');
+        $response = $this->withHeader('Origin', 'http://localhost:3000')->getJson('/api/user');
 
-        $response->assertUnauthorized();
+        $response->assertOk()
+            ->assertJsonPath('data.id', (string) $user->id)
+            ->assertHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+            ->assertHeader('Access-Control-Allow-Credentials', 'true')
+            ->assertCookie(Config::string('session.cookie'));
+    }
+
+    public function test_does_not_allow_browser_access_from_an_untrusted_origin(): void
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test')->plainTextToken;
+
+        $response = $this->withToken($token)->withHeader('Origin', 'https://untrusted.example')->getJson('/api/user');
+
+        $response->assertOk()
+            ->assertHeaderMissing('Access-Control-Allow-Origin');
     }
 }
