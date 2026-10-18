@@ -6,6 +6,29 @@ A Laravel 13 API using Sanctum bearer tokens, PHP 8.5, and Laravel Sail. The app
 
 Use GitHub's **Use this template** button to create your own repository, then clone it and enter its directory. Requirements: Git, Docker Engine or Docker Desktop with Docker Compose v2, and a POSIX shell (Linux, macOS, or Windows through WSL2). Host PHP, Composer, and Node are not required.
 
+### Create with Composer
+
+The public Composer package is `devshaded/laravel-sanctum-starter-kit`. With Composer 2.10+ and PHP 8.5, use the following command after the package has been registered on [Packagist](https://packagist.org/packages/devshaded/laravel-sanctum-starter-kit):
+
+```bash
+composer create-project devshaded/laravel-sanctum-starter-kit example-app \
+  --prefer-dist --no-install --no-scripts
+cd example-app
+```
+
+Composer selects the latest stable release. To select a specific release, add its version after `example-app`, for example `1.0.0`. Continue with **Fresh-clone setup** below. `--no-install --no-scripts` defers dependency installation and application initialization until Docker is configured.
+
+Until Packagist registration is complete, the public GitHub repository works directly without repository credentials:
+
+```bash
+composer create-project devshaded/laravel-sanctum-starter-kit example-app 1.0.0 \
+  --prefer-dist --no-install --no-scripts \
+  --repository='{"type":"vcs","url":"https://github.com/DevShaded/laravel-sanctum-starter-kit"}'
+cd example-app
+```
+
+Composer package names are lowercase. `create-project` takes the package name directly; it does not display a starter-kit selection menu.
+
 ### Fresh-clone setup
 
 Create the local environment and record your local user/group IDs:
@@ -161,11 +184,13 @@ Run the scheduler on one application node with a cron entry once per minute:
 
 Use your production application's actual path and PHP binary. Monitor queue workers, scheduler failures, application logs, database backups, and the `/up` health endpoint after deployment. API documentation remains restricted in production.
 
-## Publishing the GitHub template
+## Publishing releases
 
-Publish the repository only after local quality checks and the fresh-clone smoke test pass. Keep `.env`, credentials, dependencies, logs, and generated caches out of Git; commit `.env.example`, `composer.lock`, application files, tests, workflows, and `LICENSE`.
+This public repository is also a GitHub template. Keep `.env`, credentials, dependencies, logs, and generated caches out of Git; commit `.env.example`, `composer.lock`, application files, tests, workflows, and `LICENSE`.
 
-On GitHub, run CI on the default branch. Once both jobs pass, configure a branch ruleset requiring **PHP checks and tests** and **Fresh clone setup**, then enable **Template repository** in Settings. Repository creation, hosted Actions verification, required checks, and the template setting must be completed against the actual GitHub repository.
+Before releasing, require both **PHP checks and tests** and **Fresh clone setup** to pass on the release commit. Create a semantic version tag such as `v1.0.0`; Composer derives versions from Git tags, so do not add a `version` field to `composer.json`.
+
+For the initial Packagist publication, sign in at [Packagist](https://packagist.org/), open [Submit](https://packagist.org/packages/submit), and enter `https://github.com/DevShaded/laravel-sanctum-starter-kit`. Enable Packagist's GitHub integration for automatic updates when tags are pushed. Verify that the package page lists the stable release before using the short installation command above. Subsequent releases use new version tags; existing tags must not be moved.
 
 ## License
 

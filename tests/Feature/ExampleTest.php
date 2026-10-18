@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 // use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 final class ExampleTest extends TestCase
@@ -26,10 +27,11 @@ final class ExampleTest extends TestCase
         $response->assertNotFound()->assertHeader('Content-Type', 'application/json');
     }
 
-    public function test_the_csrf_cookie_endpoint_is_disabled(): void
+    public function test_the_csrf_cookie_endpoint_initializes_browser_cookies(): void
     {
         $response = $this->get('/sanctum/csrf-cookie');
 
-        $response->assertNotFound()->assertHeaderMissing('Set-Cookie');
+        $response->assertNoContent()->assertCookie('XSRF-TOKEN')
+            ->assertCookie(Config::string('session.cookie'));
     }
 }

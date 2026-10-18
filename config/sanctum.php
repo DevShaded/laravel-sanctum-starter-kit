@@ -5,10 +5,13 @@ declare(strict_types=1);
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
+use Laravel\Sanctum\Sanctum;
+
+$statefulDomains = env('SANCTUM_STATEFUL_DOMAINS', 'localhost,localhost:3000,127.0.0.1,127.0.0.1:3000,127.0.0.1:8000,::1'.Sanctum::currentApplicationUrlWithPort());
+
+throw_unless(is_string($statefulDomains), InvalidArgumentException::class, 'SANCTUM_STATEFUL_DOMAINS must be a comma-separated string.');
 
 return [
-
-    'routes' => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -21,9 +24,8 @@ return [
     |
     */
 
-    'stateful' => [
-        // Sanctum::currentRequestHost(),
-    ],
+    'stateful' => explode(',', $statefulDomains),
+    // Sanctum::currentRequestHost(),
 
     /*
     |--------------------------------------------------------------------------
@@ -37,7 +39,7 @@ return [
     |
     */
 
-    'guard' => [],
+    'guard' => ['web'],
 
     /*
     |--------------------------------------------------------------------------

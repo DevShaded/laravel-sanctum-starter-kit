@@ -1,13 +1,21 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel-sanctum/starter-kit",
+    "name": "devshaded/laravel-sanctum-starter-kit",
     "type": "project",
     "description": "An API-only Laravel starter kit with Sanctum bearer tokens and Docker development.",
     "keywords": [
         "laravel",
-        "framework"
+        "sanctum",
+        "api",
+        "starter-kit",
+        "sail"
     ],
+    "homepage": "https://github.com/DevShaded/laravel-sanctum-starter-kit",
     "license": "MIT",
+    "support": {
+        "issues": "https://github.com/DevShaded/laravel-sanctum-starter-kit/issues",
+        "source": "https://github.com/DevShaded/laravel-sanctum-starter-kit"
+    },
     "require": {
         "php": "^8.5",
         "dedoc/scramble": "^0.13.48",
